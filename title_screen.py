@@ -8,6 +8,11 @@ fpsClock = pygame.time.Clock()
 width, height = 500, 600
 screen = pygame.display.set_mode((width, height))
 
+title_image = pygame.image.load('assets/tetris.png')
+title_image = pygame.transform.scale(title_image, (300, 100))  # optional
+title_rect = title_image.get_rect(center=(width // 2, 130))
+
+
 font = pygame.font.Font('assets/modern-tetris.ttf', 40)
 
 objects = []
@@ -75,6 +80,8 @@ customButton = Button(150, 305, 200, 100, 'Exit', myFunction)
 # Game loop.
 while True:
     screen.fill((20, 20, 20))
+
+    screen.blit(title_image, title_rect)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
