@@ -1,5 +1,5 @@
 # Imports
-import sys, pygame
+import sys, pygame, GameState
 
 # Configuration
 pygame.init()
@@ -69,26 +69,44 @@ class Button():
         ])
         screen.blit(self.buttonSurface, self.buttonRect)
 
+def startButtonPressed():
+    global title_screen
+    global fpsClock
+    title_screen = False
+    pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 1000)
 
-def myFunction():
-    print('Button Pressed')
+def exitButtonPressed():
+    global running
+    running = False
 
+startButton = Button(150, 195, 200, 100, 'Start', startButtonPressed)
+exitButton = Button(150, 305, 200, 100, 'Exit', exitButtonPressed)
 
-customButton = Button(150, 195, 200, 100, 'Start', myFunction)
-customButton = Button(150, 305, 200, 100, 'Exit', myFunction)
+# Stores whether we are rendering the title screen
+title_screen = True
+
+running = True
+
+game_state = GameState.GameState((width - 100, height - 100))
 
 # Game loop.
-while True:
+while running:
     screen.fill((20, 20, 20))
 
-    screen.blit(title_image, title_rect)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        elif event.type == GameState.PHYSICS_STEP_EVENT:
+            game_state.step()
+            pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 250)
 
-    for object in objects:
-        object.process()
+    if title_screen:
+        screen.blit(title_image, title_rect)
+        for object in objects:
+            object.process()
+    else:
+        game_state.render(screen)
 
     pygame.display.flip()
     fpsClock.tick(fps)
