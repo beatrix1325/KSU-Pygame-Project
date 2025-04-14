@@ -8,12 +8,15 @@ fpsClock = pygame.time.Clock()
 width, height = 500, 600
 screen = pygame.display.set_mode((width, height))
 
-title_image = pygame.image.load('assets/tetris.png')
+pygame.mixer.music.load('assets/music/video-game-sounds_120bpm.wav')
+pygame.mixer.music.play(-1)
+
+title_image = pygame.image.load('assets/img/tetris.png')
 title_image = pygame.transform.scale(title_image, (300, 100))  # optional
 title_rect = title_image.get_rect(center=(width // 2, 130))
 
 
-font = pygame.font.Font('assets/modern-tetris.ttf', 40)
+font = pygame.font.Font('assets/fonts/modern-tetris.ttf', 30)
 
 objects = []
 
@@ -69,17 +72,60 @@ class Button():
         ])
         screen.blit(self.buttonSurface, self.buttonRect)
 
+def fade_out_screen(fade_time_ms):
+    surface = pygame.Surface((width, height))
+    surface.fill((0, 0, 0))
+    step = 5
+    alpha_values = range(0, 256, step)
+    steps = len(list(alpha_values))
+    delay_per_step = fade_time_ms / steps if steps else 0
+    for alpha in alpha_values:
+        surface.set_alpha(alpha)
+        screen.blit(surface, (0, 0))
+        pygame.display.flip()
+        pygame.time.delay(int(delay_per_step))
 
-def myFunction():
-    print('Button Pressed')
+def startGame():
+    old_vol = pygame.mixer.music.get_volume()
+    pygame.mixer.music.set_volume(0.3)     # lower the background music
+    s = pygame.mixer.Sound('assets/music/winning-game-sound-effect.wav')
+    s.play()
+    duration_ms = int(s.get_length() * 1000)
+    fade_out_screen(duration_ms)
+    pygame.mixer.music.set_volume(old_vol) # restore background volume
+    import main
+    main.run()
+
+def openSettings():
+    old_vol = pygame.mixer.music.get_volume()
+    pygame.mixer.music.set_volume(0.3)
+    s = pygame.mixer.Sound('assets/music/menu-button-89141.mp3')
+    s.play()
+    duration_ms = int(s.get_length() * 1000)
+    fade_out_screen(duration_ms)
+    pygame.mixer.music.set_volume(old_vol)
+    import settings
+    settings.run()
+
+def quitGame():
+    old_vol = pygame.mixer.music.get_volume()
+    pygame.mixer.music.set_volume(0.3)
+    s = pygame.mixer.Sound('assets/music/game-over-arcade-6435.mp3')
+    s.play()
+    duration_ms = int(s.get_length() * 1000)
+    fade_out_screen(duration_ms)
+    pygame.mixer.music.set_volume(old_vol)
+    pygame.quit()
+    sys.exit()
 
 
-customButton = Button(150, 195, 200, 100, 'Start', myFunction)
-customButton = Button(150, 305, 200, 100, 'Exit', myFunction)
+customButton = Button(150, 195, 200, 100, 'Start', startGame)
+customButton = Button(150, 415, 200, 100, 'Exit', quitGame)
+customButton = Button(150, 305, 200, 100, 'Settings', openSettings)
 
 # Game loop.
 while True:
-    screen.fill((20, 20, 20))
+    screen.fill((0, 0, 0))
 
     screen.blit(title_image, title_rect)
     for event in pygame.event.get():
