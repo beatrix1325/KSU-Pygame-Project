@@ -140,11 +140,9 @@ class GameState:
                 new_position.collision_box[1].collidelist(stage_collisions) != -1
         ) or self.floor.collidelist(new_position.collision_box) != -1:
             self.stage_pieces.append(self.stage_drop.move((0, -self.block_size)))
-            print(self.stage_drop.position[0] // self.block_size, self.stage_drop.position[1] // self.block_size)
             self.new_tetromino()
         else:
             self.stage_drop = new_position
-            print(self.stage_drop.position[0] // self.block_size, self.stage_drop.position[1] // self.block_size)
 
     def stage_width(self):
         return STAGE_BLOCK_WIDTH * self.block_size
