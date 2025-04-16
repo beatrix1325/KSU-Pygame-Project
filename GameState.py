@@ -7,6 +7,7 @@ STAGE_BLOCK_HEIGHT = 40
 STAGE_BLOCK_WIDTH = 10
 
 PHYSICS_STEP_EVENT = pygame.USEREVENT + 1
+INPUT_STEP_EVENT = pygame.USEREVENT + 2
 
 # Represents the various tetris blocks that may occur
 class Tetromino:

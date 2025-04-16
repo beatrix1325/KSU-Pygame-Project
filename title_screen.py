@@ -92,6 +92,7 @@ def startGame():
     pygame.mixer.music.set_volume(old_vol)
     title_screen = False
     pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 1000)
+    pygame.time.set_timer(GameState.INPUT_STEP_EVENT, 200)
 
 def openSettings():
     old_vol = pygame.mixer.music.get_volume()
@@ -115,13 +116,17 @@ def quitGame():
     pygame.quit()
     sys.exit()
 
-startButton = Button(100, 195, 300, 100, 'START', startGame)
-exitButton = Button(100, 415, 300, 100, 'EXIT', quitGame)
-settingsButton = Button(100, 305, 300, 100, 'SETTINGS', openSettings)
+Button(100, 195, 300, 100, 'START', startGame)
+Button(100, 415, 300, 100, 'EXIT', quitGame)
+Button(100, 305, 300, 100, 'SETTINGS', openSettings)
 # Stores whether we are rendering the title screen
 title_screen = True
 
 game_state = GameState.GameState((width, height), 10)
+# idx 0: Movement key
+# idx 1: Rotation key
+# idx 2: Drop key
+waiting_key = [0, False, False]
 
 # Game loop.
 while True:
@@ -133,7 +138,38 @@ while True:
             sys.exit()
         elif event.type == GameState.PHYSICS_STEP_EVENT:
             game_state.step()
-            pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 100)
+            pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 1000)
+        elif event.type == GameState.INPUT_STEP_EVENT:
+            pygame.time.set_timer(GameState.INPUT_STEP_EVENT, 200)
+            if waiting_key[0] == pygame.K_RIGHT:
+                if game_state.stage_drop.texture.get_width() + game_state.stage_drop.position[0] <= game_state.stage_width():
+                    game_state.stage_drop = game_state.stage_drop.move((game_state.block_size, 0))
+                else:
+                    print("Reached edge")
+                waiting_key[0] = 0
+            elif waiting_key[0] == pygame.K_LEFT:
+                if game_state.stage_drop.position[0] > 0:
+                    game_state.stage_drop = game_state.stage_drop.move((-game_state.block_size, 0))
+                waiting_key[0] = 0
+
+            if waiting_key[1]:
+                # TODO: handle rotation
+                pass
+            if waiting_key[2]:
+                # TODO: increase fall speed
+                pass
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_RIGHT]:
+            waiting_key[0] = pygame.K_RIGHT
+        elif keys[pygame.K_LEFT]:
+            waiting_key[0] = pygame.K_LEFT
+
+        if keys[pygame.K_UP]:
+            waiting_key[1] = True
+        if keys[pygame.K_DOWN]:
+            waiting_key[2] = True
+
 
     if title_screen:
         screen.blit(title_image, title_rect)
