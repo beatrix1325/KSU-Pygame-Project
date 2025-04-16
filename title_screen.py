@@ -1,7 +1,5 @@
-# Imports
 import sys, pygame
 
-# Configuration
 pygame.init()
 fps = 60
 fpsClock = pygame.time.Clock()
@@ -92,7 +90,7 @@ def startGame():
     s.play()
     duration_ms = int(s.get_length() * 1000)
     fade_out_screen(duration_ms)
-    pygame.mixer.music.set_volume(old_vol) # restore background volume
+    pygame.mixer.music.set_volume(old_vol)
     import main
     main.run()
 
@@ -119,9 +117,9 @@ def quitGame():
     sys.exit()
 
 
-customButton = Button(150, 195, 200, 100, 'Start', startGame)
-customButton = Button(150, 415, 200, 100, 'Exit', quitGame)
-customButton = Button(150, 305, 200, 100, 'Settings', openSettings)
+customButton = Button(125, 195, 250, 100, 'START', startGame)
+customButton = Button(125, 415, 250, 100, 'EXIT', quitGame)
+customButton = Button(125, 305, 250, 100, 'SETTINGS', openSettings)
 
 # Game loop.
 while True:
