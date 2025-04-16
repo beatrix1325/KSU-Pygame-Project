@@ -73,7 +73,7 @@ def startButtonPressed():
     global title_screen
     global fpsClock
     title_screen = False
-    pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 1000)
+    pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 100)
 
 def exitButtonPressed():
     global running
@@ -87,7 +87,7 @@ title_screen = True
 
 running = True
 
-game_state = GameState.GameState((width - 100, height - 100))
+game_state = GameState.GameState((width, height), 10)
 
 # Game loop.
 while running:
@@ -99,7 +99,7 @@ while running:
             sys.exit()
         elif event.type == GameState.PHYSICS_STEP_EVENT:
             game_state.step()
-            pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 250)
+            pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 100)
 
     if title_screen:
         screen.blit(title_image, title_rect)
