@@ -1,5 +1,5 @@
 # Imports
-import sys, pygame
+import sys, pygame, GameState
 
 # Configuration
 pygame.init()
@@ -8,12 +8,12 @@ fpsClock = pygame.time.Clock()
 width, height = 500, 600
 screen = pygame.display.set_mode((width, height))
 
-title_image = pygame.image.load('assets/tetris.png')
+title_image = pygame.image.load('assets/img/tetris.png')
 title_image = pygame.transform.scale(title_image, (300, 100))  # optional
 title_rect = title_image.get_rect(center=(width // 2, 130))
 
 
-font = pygame.font.Font('assets/modern-tetris.ttf', 40)
+font = pygame.font.Font('assets/fonts/modern-tetris.ttf', 40)
 
 objects = []
 
@@ -43,7 +43,6 @@ class Button():
         objects.append(self)
 
     def process(self):
-
         mousePos = pygame.mouse.get_pos()
 
         self.buttonSurface.fill(self.fillColors['normal'])
@@ -83,6 +82,7 @@ def fade_out_screen(fade_time_ms):
         pygame.time.delay(int(delay_per_step))
 
 def startGame():
+    global title_screen, fpsClock
     old_vol = pygame.mixer.music.get_volume()
     pygame.mixer.music.set_volume(0.3)     # lower the background music
     s = pygame.mixer.Sound('assets/music/winning-game-sound-effect.wav')
@@ -90,17 +90,8 @@ def startGame():
     duration_ms = int(s.get_length() * 1000)
     fade_out_screen(duration_ms)
     pygame.mixer.music.set_volume(old_vol)
-    import main
-    main.run()
-def startButtonPressed():
-    global title_screen
-    global fpsClock
     title_screen = False
-    pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 100)
-
-def exitButtonPressed():
-    global running
-    running = False
+    pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 1000)
 
 def openSettings():
     old_vol = pygame.mixer.music.get_volume()
@@ -124,17 +115,16 @@ def quitGame():
     pygame.quit()
     sys.exit()
 
-startButton = Button(150, 195, 200, 100, 'Start', startButtonPressed)
-exitButton = Button(150, 305, 200, 100, 'Exit', exitButtonPressed)
-settingsButton = Button(125, 305, 250, 100, 'SETTINGS', openSettings)
+startButton = Button(100, 195, 300, 100, 'START', startGame)
+exitButton = Button(100, 415, 300, 100, 'EXIT', quitGame)
+settingsButton = Button(100, 305, 300, 100, 'SETTINGS', openSettings)
 # Stores whether we are rendering the title screen
 title_screen = True
-running = True
 
 game_state = GameState.GameState((width, height), 10)
 
 # Game loop.
-while running:
+while True:
     screen.fill((20, 20, 20))
 
     for event in pygame.event.get():
