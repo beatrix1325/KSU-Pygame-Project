@@ -108,6 +108,7 @@ class GameState:
         self.stage_pieces = []
         self.stage = pygame.Rect(0, 0, dimensions[0], dimensions[1])
         self.block_size = block_size
+        self.paused = False
         self.new_tetromino()
         self.floor = pygame.Rect(0, dimensions[1], dimensions[0], block_size)
 
@@ -122,12 +123,27 @@ class GameState:
             pygame.Rect(0, 0, self.stage_width(), STAGE_BLOCK_HEIGHT / 2 * self.block_size)
         )
         self.stage_drop.render(self.game_surface)
+        # add area for score, level, next tetromino
+        pygame.draw.line(self.game_surface, (255, 255, 255), (300, 0), (300, self.stage.height))
         local_screen.blit(self.game_surface, self.stage)
 
     def new_tetromino(self):
         self.stage_drop = Tetromino(self.block_size)
 
+    # pausing the game using "esc" key
+    def handle_escape(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_ESCAPE] and not self.paused:
+            import settings
+            self.paused = True
+            settings.run()
+            self.paused = False
+
     def step(self):
+        self.handle_escape()
+        if self.paused:
+            return
+
         new_position = self.stage_drop.move((0, self.block_size))
         # Check if the new position of the dropped tetromino collides with anything
         stage_collisions = []
