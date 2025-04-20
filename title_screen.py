@@ -198,8 +198,6 @@ def quitGame():
     pygame.quit()
     sys.exit()
 
-objects = []
-
 startButton = Button(100, 195, 300, 100, 'START', startGame)
 objects.append(startButton)
 
@@ -221,7 +219,7 @@ game_state = GameState.GameState((width, height), 10)
 # idx 2: Drop key
 waiting_key = [0, False, False]
 
-physics_speed = 1000
+physics_speed = 600
 
 # Game loop.
 while True:
@@ -249,26 +247,30 @@ while True:
                 # TODO: handle rotation
                 pass
             if waiting_key[2]:
-                physics_speed = 250
+                physics_speed = 200
             else:
-                physics_speed = 1000
+                physics_speed = 600
+        elif event.type == pygame.KEYDOWN and not title_screen:
+            if event.key == pygame.K_ESCAPE:
+                openSettings()
+            elif event.key == pygame.K_UP:
+                waiting_key[1] = True
+            elif event.key == pygame.K_DOWN:
+                waiting_key[2] = True
+        elif event.type == pygame.KEYUP and not title_screen:
+            if event.key == pygame.K_UP:
+                waiting_key[1] = False
+            elif event.key == pygame.K_DOWN:
+                waiting_key[2] = False
 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_RIGHT]:
+
+        if pygame.key.get_pressed()[pygame.K_RIGHT]:
             waiting_key[0] = pygame.K_RIGHT
-        elif keys[pygame.K_LEFT]:
+        elif pygame.key.get_pressed()[pygame.K_LEFT]:
             waiting_key[0] = pygame.K_LEFT
 
-        if keys[pygame.K_UP]:
-            waiting_key[1] = True
-        if keys[pygame.K_DOWN]:
-            waiting_key[2] = True
-
-    elif event.type == pygame.KEYDOWN and not title_screen:
-        if event.key == pygame.K_ESCAPE:
-            openSettings()
-    for button in objects:
-        button.handle_event(event)
+        for button in objects:
+            button.handle_event(event)
 
     if title_screen:
         screen.blit(title_image, title_rect)
