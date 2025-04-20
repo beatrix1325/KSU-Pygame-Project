@@ -92,7 +92,7 @@ def startGame():
     pygame.mixer.music.set_volume(old_vol)
     title_screen = False
     pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 1000)
-    pygame.time.set_timer(GameState.INPUT_STEP_EVENT, 200)
+    pygame.time.set_timer(GameState.INPUT_STEP_EVENT, 300)
 
 def openSettings():
     old_vol = pygame.mixer.music.get_volume()
@@ -128,6 +128,8 @@ game_state = GameState.GameState((width, height), 10)
 # idx 2: Drop key
 waiting_key = [0, False, False]
 
+physics_speed = 1000
+
 # Game loop.
 while True:
     screen.fill((20, 20, 20))
@@ -138,14 +140,12 @@ while True:
             sys.exit()
         elif event.type == GameState.PHYSICS_STEP_EVENT:
             game_state.step()
-            pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 1000)
+            pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, physics_speed)
         elif event.type == GameState.INPUT_STEP_EVENT:
-            pygame.time.set_timer(GameState.INPUT_STEP_EVENT, 200)
+            pygame.time.set_timer(GameState.INPUT_STEP_EVENT, 350)
             if waiting_key[0] == pygame.K_RIGHT:
                 if game_state.stage_drop.texture.get_width() + game_state.stage_drop.position[0] <= game_state.stage_width():
                     game_state.stage_drop = game_state.stage_drop.move((game_state.block_size, 0))
-                else:
-                    print("Reached edge")
                 waiting_key[0] = 0
             elif waiting_key[0] == pygame.K_LEFT:
                 if game_state.stage_drop.position[0] > 0:
@@ -156,8 +156,9 @@ while True:
                 # TODO: handle rotation
                 pass
             if waiting_key[2]:
-                # TODO: increase fall speed
-                pass
+                physics_speed = 250
+            else:
+                physics_speed = 1000
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_RIGHT]:
