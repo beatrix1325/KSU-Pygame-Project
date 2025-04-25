@@ -17,62 +17,35 @@ clock = pygame.time.Clock()
 fps = 60
 
 def run_game():
-    game_state = GameState.GameState((screen_width, screen_height), 10)
-
-    physics_speed = 600
-    waiting_key = [0, False, False]
-
+    # Initialize game state with dimensions and block size
+    game_state = GameState.GameState((screen_width, screen_height), 30)
     running = True
     while running:
-        screen.fill((0, 0, 0))
-
+        dt = clock.tick(fps)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == GameState.PHYSICS_STEP_EVENT:
-                game_state.step()
-                pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, physics_speed)
-            elif event.type == GameState.INPUT_STEP_EVENT:
-                pygame.time.set_timer(GameState.INPUT_STEP_EVENT, 350)
-                if waiting_key[0] == pygame.K_RIGHT:
-                    if game_state.stage_drop.texture.get_width() + game_state.stage_drop.position[0] <= game_state.stage_width():
-                        game_state.stage_drop = game_state.stage_drop.move((game_state.block_size, 0))
-                    waiting_key[0] = 0
-                elif waiting_key[0] == pygame.K_LEFT:
-                    if game_state.stage_drop.position[0] > 0:
-                        game_state.stage_drop = game_state.stage_drop.move((-game_state.block_size, 0))
-                    waiting_key[0] = 0
+            # Pause menu on ESC
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                result = pause_menu()
+                if result == "exit":
+                    return
+            # Forward input to game state
+            if hasattr(game_state, 'handle_event'):
+                game_state.handle_event(event)
 
-                if waiting_key[1]:
-                    game_state.stage_drop = game_state.stage_drop.rotate()
-                if waiting_key[2]:
-                    physics_speed = 200
-                else:
-                    physics_speed = 600
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    choice = pause_menu()
-                    if choice == "exit":
-                        return  # Exit to title screen
-                elif event.key == pygame.K_UP:
-                    game_state.stage_drop = game_state.stage_drop.rotate()
-                elif event.key == pygame.K_DOWN:
-                    waiting_key[2] = True
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_UP:
-                    waiting_key[1] = False
-                elif event.key == pygame.K_DOWN:
-                    waiting_key[2] = False
-
-            if pygame.key.get_pressed()[pygame.K_RIGHT]:
-                waiting_key[0] = pygame.K_RIGHT
-            elif pygame.key.get_pressed()[pygame.K_LEFT]:
-                waiting_key[0] = pygame.K_LEFT
-
-        game_state.render(screen)
+        # Step the game logic
+        if hasattr(game_state, 'step'):
+            game_state.step(dt)
+        # Render to the screen
+        if hasattr(game_state, 'render'):
+            game_state.render(screen)
         pygame.display.flip()
-        clock.tick(fps)
+
+        # Exit when game over
+        if getattr(game_state, 'game_over', False):
+            running = False
 
 def pause_menu():
     paused = True

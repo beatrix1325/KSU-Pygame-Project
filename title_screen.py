@@ -206,7 +206,7 @@ def run_title_screen(screen, clock):
         if result:
             title_screen = True
 
-    # Button callbacks must accept no args, so use lambdas to pass screen/clock
+
     local_objects = []
     startButton = Button(100, 195, 300, 100, 'START', lambda: startGame(screen, clock))
     local_objects.append(startButton)
