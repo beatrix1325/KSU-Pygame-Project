@@ -175,9 +175,13 @@ class Tetromino:
                 return False
         return True
 
-    def rotate(self, board: list[list[int]]):
+    def rotate(self, board: list[list[int]], direction: str = 'right'):
         old = self.rot
-        self.rot = (self.rot + 1) % len(self.states)
+        if direction == 'right':
+            self.rot = (self.rot + 1) % len(self.states)  # Rotate clockwise
+        elif direction == 'left':
+            self.rot = (self.rot - 1) % len(self.states)  # Rotate counterclockwise
+
         # revert if invalid
         for cx, cy in self.cells():
             if cx < 0 or cx >= COLS or cy >= ROWS or (cy >= 0 and board[cy][cx]):
@@ -223,7 +227,6 @@ class GameState:
         self.floor = pygame.Rect(0, dimensions[1], dimensions[0], block_size)
         self.score_level_font = pygame.font.Font('assets/fonts/tetris-2-bombliss.otf', 10)
 
-
     def render(self, local_screen: pygame.Surface):
         # Draw locked blocks from board grid
         self.game_surface.fill((0, 0, 0))
@@ -252,7 +255,9 @@ class GameState:
             elif event.key == pygame.K_DOWN:
                 self.stage_drop.move(0, 1, self.board)
             elif event.key == pygame.K_UP:
-                self.stage_drop.rotate(self.board)
+                self.stage_drop.rotate(self.board, direction='left')  # Rotate counterclockwise
+            elif event.key == pygame.K_r:  # Rotate to the right
+                self.stage_drop.rotate(self.board, direction='right')  # Rotate clockwise
             elif event.key == pygame.K_SPACE:
                 while self.stage_drop.move(0, 1, self.board):
                     pass
@@ -260,7 +265,6 @@ class GameState:
                 result = pause_menu()
                 if result == "exit":
                     self.game_over = True
-
 
     def run(self):
         running = True
@@ -283,47 +287,23 @@ class GameState:
     def new_tetromino(self):
         self.stage_drop = Tetromino(self.block_size)
 
-
     def step(self, dt):
         if self.paused:
             return
-        # accumulate time and only drop every drop_interval ms
         self.drop_timer += dt
         if self.drop_timer < self.drop_interval:
             return
         self.drop_timer = 0
 
-        # attempt to move down one block
         moved = self.stage_drop.move(0, 1, self.board)
-        # collect rectangles of all placed pieces
-        stage_rects = [
-            (cx, cy) for piece in self.stage_pieces
-            for cx, cy in piece.cells()
-        ]
-        # detect collision with existing pieces
-        collided = False
-        if moved:
-            for cx, cy in self.stage_drop.cells():
-                if (cx, cy) in stage_rects:
-                    collided = True
-                    break
-        # lock if hit wall/floor (move failed) or landed on a piece
-        if not moved or collided:
-            # if collided after moving, revert that last drop
-            if moved and collided:
-                self.stage_drop.move(0, -1, self.board)
-            # add piece cells to board
+        if not moved:
             for cx, cy in self.stage_drop.cells():
                 if 0 <= cy < ROWS and 0 <= cx < COLS:
                     self.board[cy][cx] = self.stage_drop.kind
             self.stage_pieces.append(self.stage_drop)
-            # clear any complete lines
             lines_cleared = self.remove_complete_lines()
-            # increment score by number of lines cleared (100 points each)
             self.score += lines_cleared * 100
-            # recalculate level and drop speed
             self.level, self.drop_interval = self.calculate_level_and_drop_interval(self.score)
-            # spawn next piece
             self.new_tetromino()
 
     def update(self, dt):
