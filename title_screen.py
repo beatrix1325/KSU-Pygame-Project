@@ -1,20 +1,17 @@
-# Imports
 import sys, pygame, GameState
 
 # Configuration
 pygame.init()
 pygame.mixer.init()
 fps = 60
-fpsClock = pygame.time.Clock()
 width, height = 500, 600
-screen = pygame.display.set_mode((width, height))
 
 pygame.mixer.music.load('assets/music/video-game-sounds_120bpm.wav')
 pygame.mixer.music.set_volume(1.0)
 pygame.mixer.music.play(-1)
 
 title_image = pygame.image.load('assets/img/tetris.png')
-title_image = pygame.transform.scale(title_image, (300, 100))  # optional
+title_image = pygame.transform.scale(title_image, (300, 100))
 title_rect = title_image.get_rect(center=(width // 2, 130))
 
 font = pygame.font.Font('assets/fonts/modern-tetris.ttf', 40)
@@ -66,7 +63,7 @@ class Button:
                 self.current_color = self.color_normal
 
 
-def fade_out_screen(fade_time_ms):
+def fade_out_screen(screen, clock, fade_time_ms):
     surface = pygame.Surface((width, height))
     surface.fill((0, 0, 0))
     step = 5
@@ -80,13 +77,13 @@ def fade_out_screen(fade_time_ms):
         pygame.time.delay(int(delay_per_step))
 
 
-def Gameinstructions():
+def Gameinstructions(screen, clock):
     old_vol = pygame.mixer.music.get_volume()
     pygame.mixer.music.set_volume(0.3)
     s = pygame.mixer.Sound('assets/music/menu-button-89141.mp3')
     s.play()
     duration_ms = int(s.get_length() * 1000)
-    fade_out_screen(duration_ms)
+    fade_out_screen(screen, clock, duration_ms)
     pygame.mixer.music.set_volume(old_vol)
 
     prompt_lines = ["Do you seriously not know", "how to play Tetris?"]
@@ -95,21 +92,24 @@ def Gameinstructions():
     btn1_y = height - btn_h*2 - 60
     btn2_y = height - btn_h - 40
 
+    active = True
+    def exit_instructions():
+        nonlocal active
+        active = False
+
+    def real_instructions_inner():
+        real_instructions(screen, clock)
+
     btn1 = Button(btn_x, btn1_y, btn_w, btn_h,
     "No, I do.\nI was just seeing what '?' was",
         onclick=lambda: exit_instructions())
 
     btn2 = Button(btn_x, btn2_y, btn_w, btn_h,
         "Tetris?\nI've never even heard of it",
-        onclick=real_instructions)
-
-    active = True
-    def exit_instructions():
-        nonlocal active
-        active = False
+        onclick=real_instructions_inner)
 
     while active:
-        fpsClock.tick(fps)
+        clock.tick(fps)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -118,7 +118,6 @@ def Gameinstructions():
                 active = False
             btn1.handle_event(event)
             btn2.handle_event(event)
-
 
         screen.fill((0, 0, 0))
 
@@ -133,7 +132,7 @@ def Gameinstructions():
         btn2.draw(screen)
         pygame.display.flip()
 
-def real_instructions():
+def real_instructions(screen, clock):
     controls = [
         " Left Arrow - Move block left",
         " Right Arrow - Move block right",
@@ -145,7 +144,7 @@ def real_instructions():
     ]
     active = True
     while active:
-        fpsClock.tick(fps)
+        clock.tick(fps)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -166,118 +165,70 @@ def real_instructions():
 
         pygame.display.flip()
 
-def startGame():
-    global title_screen, fpsClock
+def startGame(screen, clock):
+    global title_screen
     old_vol = pygame.mixer.music.get_volume()
     pygame.mixer.music.set_volume(0.3)
     s = pygame.mixer.Sound('assets/music/winning-game-sound-effect.wav')
     s.play()
     duration_ms = int(s.get_length() * 1000)
-    fade_out_screen(duration_ms)
+    fade_out_screen(screen, clock, duration_ms)
     pygame.mixer.music.set_volume(old_vol)
     title_screen = False
     pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, 1000)
     pygame.time.set_timer(GameState.INPUT_STEP_EVENT, 300)
 
-def openSettings():
-    global title_screen
-    import settings
-    result = settings.run(return_to_game=not title_screen)
-    if result:
-        title_screen = True
 
 
-def quitGame():
+def quitGame(screen, clock):
     old_vol = pygame.mixer.music.get_volume()
     pygame.mixer.music.set_volume(0.3)
     s = pygame.mixer.Sound('assets/music/game-over-arcade-6435.mp3')
     s.play()
     duration_ms = int(s.get_length() * 1000)
-    fade_out_screen(duration_ms)
+    fade_out_screen(screen, clock, duration_ms)
     pygame.mixer.music.set_volume(old_vol)
     pygame.quit()
     sys.exit()
 
-startButton = Button(100, 195, 300, 100, 'START', startGame)
-objects.append(startButton)
-
-exitButton = Button(100, 415, 300, 100, 'EXIT', quitGame)
-objects.append(exitButton)
-
-settingsButton = Button(100, 305, 300, 100, 'SETTINGS', openSettings)
-objects.append(settingsButton)
-
-tutorialButton = Button(0, 550, 50, 50, '?', Gameinstructions)
-objects.append(tutorialButton)
 
 
-title_screen = True
 
-game_state = GameState.GameState((width, height), 10)
-# idx 0: Movement key
-# idx 1: Rotation key
-# idx 2: Drop key
-waiting_key = [0, False, False]
+#function to run the title screen
+def run_title_screen(screen, clock):
+    global title_screen
+    title_screen = True
 
-physics_speed = 600
+    def openSettings():
+        import settings
+        global title_screen
+        result = settings.run(screen, clock, return_to_game=not title_screen)
+        if result:
+            title_screen = True
 
-# Game loop.
-while True:
-    screen.fill((0, 0, 0))
+    # Button callbacks must accept no args, so use lambdas to pass screen/clock
+    local_objects = []
+    startButton = Button(100, 195, 300, 100, 'START', lambda: startGame(screen, clock))
+    local_objects.append(startButton)
+    exitButton = Button(100, 415, 300, 100, 'EXIT', lambda: quitGame(screen, clock))
+    local_objects.append(exitButton)
+    settingsButton = Button(100, 305, 300, 100, 'SETTINGS', openSettings)
+    local_objects.append(settingsButton)
+    tutorialButton = Button(0, 550, 50, 50, '?', lambda: Gameinstructions(screen, clock))
+    local_objects.append(tutorialButton)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == GameState.PHYSICS_STEP_EVENT:
-            game_state.step()
-            pygame.time.set_timer(GameState.PHYSICS_STEP_EVENT, physics_speed)
-        elif event.type == GameState.INPUT_STEP_EVENT:
-            pygame.time.set_timer(GameState.INPUT_STEP_EVENT, 350)
-            if waiting_key[0] == pygame.K_RIGHT:
-                if game_state.stage_drop.texture.get_width() + game_state.stage_drop.position[0] <= game_state.stage_width():
-                    game_state.stage_drop = game_state.stage_drop.move((game_state.block_size, 0))
-                waiting_key[0] = 0
-            elif waiting_key[0] == pygame.K_LEFT:
-                if game_state.stage_drop.position[0] > 0:
-                    game_state.stage_drop = game_state.stage_drop.move((-game_state.block_size, 0))
-                waiting_key[0] = 0
+    while title_screen:
+        screen.fill((0, 0, 0))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            for button in local_objects:
+                button.handle_event(event)
 
-            if waiting_key[1]:
-                # TODO: handle rotation
-                pass
-            if waiting_key[2]:
-                physics_speed = 200
-            else:
-                physics_speed = 600
-        elif event.type == pygame.KEYDOWN and not title_screen:
-            if event.key == pygame.K_ESCAPE:
-                openSettings()
-            elif event.key == pygame.K_UP:
-                waiting_key[1] = True
-            elif event.key == pygame.K_DOWN:
-                waiting_key[2] = True
-        elif event.type == pygame.KEYUP and not title_screen:
-            if event.key == pygame.K_UP:
-                waiting_key[1] = False
-            elif event.key == pygame.K_DOWN:
-                waiting_key[2] = False
-
-
-        if pygame.key.get_pressed()[pygame.K_RIGHT]:
-            waiting_key[0] = pygame.K_RIGHT
-        elif pygame.key.get_pressed()[pygame.K_LEFT]:
-            waiting_key[0] = pygame.K_LEFT
-
-        for button in objects:
-            button.handle_event(event)
-
-    if title_screen:
         screen.blit(title_image, title_rect)
-        for object in objects:
+        for object in local_objects:
             object.draw(screen)
-    else:
-        game_state.render(screen)
 
-    pygame.display.flip()
-    fpsClock.tick(fps)
+        pygame.display.flip()
+        clock.tick(fps)

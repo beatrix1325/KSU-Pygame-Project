@@ -1,51 +1,14 @@
-import sys, pygame, GameState
-
-pygame.init()
-pygame.mixer.init()
+import sys, pygame, GameState, Main
 
 WIDTH, HEIGHT = 500, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Settings Menu")
 
 font = pygame.font.Font('assets/fonts/modern-tetris.ttf', 25)
 small_font = pygame.font.Font('assets/fonts/modern-tetris.ttf', 20)
-clock = pygame.time.Clock()
 fps = 60
 
-def run_secret_menu():
-    user_text = ""
-    active = True
-    s = pygame.mixer.Sound('assets/music/cute-level-up-3-189853.mp3')
-    s.play()
-    while active:
-        clock.tick(fps)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    active = False
-                elif event.key == pygame.K_RETURN:
-                    print("Cheat code entered:", user_text)
-                    user_text = ""
-                elif event.key == pygame.K_BACKSPACE:
-                    user_text = user_text[:-1]
-                else:
-                    user_text += event.unicode
-        screen.fill((10, 10, 60))
-        line1 = small_font.render("ENTER GAMEPLAY MODIFIER.", True, (255, 255, 255))
-        line2 = small_font.render("PRESS ESC TO GO BACK.", True, (255, 255, 255))
-        screen.blit(line1, (WIDTH//2 - line1.get_width()//2, 30))
-        screen.blit(line2, (WIDTH//2 - line2.get_width()//2, 70))
-        box_rect = pygame.Rect(20, 120, WIDTH - 40, 50)
-        pygame.draw.rect(screen, (255,255,255), box_rect, 2)
-        text_surf = small_font.render(user_text, True, (255,255,255))
-        screen.blit(text_surf, (box_rect.x + 10, box_rect.y + 10))
-        pygame.display.flip()
-
-# --- MAIN SETTINGS MENU ---
-def run(return_to_game=False):
+# main menu
+def run(screen, clock, return_to_game=False):
     is_muted = False
     running = True
     exit_to_title = False
@@ -132,18 +95,6 @@ def run(return_to_game=False):
     if return_to_game:
         exit_button = Button(150, 350, 200, 80, "EXIT", exit_action)
 
-    # Cheat code sequence
-    cheat_code = [
-        pygame.K_UP,
-        pygame.K_DOWN,
-        pygame.K_UP,
-        pygame.K_DOWN,
-        pygame.K_a,
-        pygame.K_b,
-        pygame.K_RETURN
-    ]
-    cheat_index = 0
-
     while running:
         clock.tick(fps)
         for event in pygame.event.get():
@@ -156,16 +107,6 @@ def run(return_to_game=False):
             if return_to_game:
                 exit_button.handle_event(event)
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == cheat_code[cheat_index]:
-                    cheat_index += 1
-                    if cheat_index == len(cheat_code):
-                        run_secret_menu()
-                        cheat_index = 0
-                else:
-                    cheat_index = 0
-
-        # Draw UI
         screen.fill((0, 0, 0))
         title_text = font.render("SETTINGS", True, (255, 255, 255))
         screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 50))
@@ -176,6 +117,3 @@ def run(return_to_game=False):
         pygame.display.flip()
 
     return exit_to_title
-
-if __name__ == "__main__":
-    run()

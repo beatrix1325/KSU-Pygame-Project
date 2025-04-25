@@ -23,57 +23,63 @@ class Tetromino:
     # A block width is just the width, in pixels, of a single given sub-block of a tetromino
     def __init__(self, block_width: int):
         self.position = (random.randint(0, 9) * block_width, 0)
-        match random.randint(0, 1):
-            case 0:
-                # O Tetromino
-                self.collision_box = [
-                    pygame.Rect(self.position[0], 0, 2 * block_width, 2 * block_width),
-                    pygame.Rect(0, 0, 0, 0)
-                ]
-                self.texture = pygame.Surface((2 * block_width, 2 * block_width))
-                self.texture.fill(
-                    (255, 0, 0, 0),
-                )
-            case 1:
-                # I Tetromino
-                self.collision_box = [
-                    pygame.Rect(self.position[0], 0, block_width, 4 * block_width),
-                    pygame.Rect(0, 0, 0, 0)
-                ]
-                self.texture = pygame.Surface((block_width, 4 * block_width))
-                self.texture.fill(
-                    (0, 255, 0, 0),
-                )
-            case 2:
-                # T Tetromino
-                self.collision_box = [
-                    pygame.Rect(self.position[0], 0, 3 * block_width, block_width),
-                    pygame.Rect(self.position[0] + block_width, block_width, block_width, block_width)
-                ]
-            case 3:
-                # J Tetromino
-                self.collision_box = [
-                    pygame.Rect(self.position[0] + block_width, 0, block_width, 3 * block_width),
-                    pygame.Rect(self.position[0], 3 * block_width, block_width, block_width)
-                ]
-            case 4:
-                # L Tetromino
-                self.collision_box = [
-                    pygame.Rect(self.position[0], 0, block_width, 3 * block_width),
-                    pygame.Rect(self.position[0] + block_width, 3 * block_width, block_width, block_width)
-                ]
-            case 5:
-                # S Tetromino
-                self.collision_box = [
-                    pygame.Rect(self.position[0], 0, 2 * block_width, 2 * block_width),
-                    pygame.Rect(0, 0, 0, 0)
-                ]
-            case 6:
-                # Z Tetromino
-                self.collision_box = [
-                    pygame.Rect(self.position[0], 0, 2 * block_width, 2 * block_width),
-                    pygame.Rect(0, 0, 0, 0)
-                ]
+        piece_type = random.randint(0, 6)
+        if piece_type == 0:
+            # O Tetromino - Yellow
+            self.collision_box = [
+                pygame.Rect(self.position[0], self.position[1], 2 * block_width, 2 * block_width),
+                pygame.Rect(0, 0, 0, 0)
+            ]
+            self.texture = pygame.Surface((2 * block_width, 2 * block_width))
+            self.texture.fill((255, 255, 0))  # Yellow
+        elif piece_type == 1:
+            # I Tetromino - Cyan
+            self.collision_box = [
+                pygame.Rect(self.position[0], self.position[1], 4 * block_width, block_width),
+                pygame.Rect(0, 0, 0, 0)
+            ]
+            self.texture = pygame.Surface((4 * block_width, block_width))
+            self.texture.fill((0, 255, 255))  # Cyan
+        elif piece_type == 2:
+            # T Tetromino - Purple
+            self.collision_box = [
+                pygame.Rect(self.position[0], self.position[1], 3 * block_width, block_width),
+                pygame.Rect(self.position[0] + block_width, self.position[1] + block_width, block_width, block_width)
+            ]
+            self.texture = pygame.Surface((3 * block_width, 2 * block_width))
+            self.texture.fill((128, 0, 128))  # Purple
+        elif piece_type == 3:
+            # J Tetromino - Blue
+            self.collision_box = [
+                pygame.Rect(self.position[0], self.position[1], block_width, 2 * block_width),
+                pygame.Rect(self.position[0] + block_width, self.position[1] + block_width, 2 * block_width, block_width)
+            ]
+            self.texture = pygame.Surface((3 * block_width, 2 * block_width))
+            self.texture.fill((0, 0, 255))  # Blue
+        elif piece_type == 4:
+            # L Tetromino - Orange
+            self.collision_box = [
+                pygame.Rect(self.position[0] + 2 * block_width, self.position[1], block_width, 2 * block_width),
+                pygame.Rect(self.position[0], self.position[1] + block_width, 2 * block_width, block_width)
+            ]
+            self.texture = pygame.Surface((3 * block_width, 2 * block_width))
+            self.texture.fill((255, 165, 0))  # Orange
+        elif piece_type == 5:
+            # S Tetromino - Green
+            self.collision_box = [
+                pygame.Rect(self.position[0] + block_width, self.position[1], 2 * block_width, block_width),
+                pygame.Rect(self.position[0], self.position[1] + block_width, 2 * block_width, block_width)
+            ]
+            self.texture = pygame.Surface((3 * block_width, 2 * block_width))
+            self.texture.fill((0, 255, 0))  # Green
+        elif piece_type == 6:
+            # Z Tetromino - Red
+            self.collision_box = [
+                pygame.Rect(self.position[0], self.position[1], 2 * block_width, block_width),
+                pygame.Rect(self.position[0] + block_width, self.position[1] + block_width, 2 * block_width, block_width)
+            ]
+            self.texture = pygame.Surface((3 * block_width, 2 * block_width))
+            self.texture.fill((255, 0, 0))  # Red
 
     def move(self, distance: tuple[int, int]):
         new_tetromino = self
@@ -90,6 +96,13 @@ class Tetromino:
 
     def render(self, local_screen: pygame.Surface):
         local_screen.blit(self.texture, self.position)
+
+    def rotate(self):
+        if hasattr(self, 'texture') and self.texture:
+            self.texture = pygame.transform.rotate(self.texture, 90)
+            width, height = self.texture.get_size()
+            self.collision_box[0] = pygame.Rect(self.position[0], self.position[1], width, height)
+        return self
 
 class GameState:
     game_surface: pygame.Surface
@@ -113,35 +126,25 @@ class GameState:
         self.new_tetromino()
         self.floor = pygame.Rect(0, dimensions[1], dimensions[0], block_size)
 
+
     def render(self, local_screen: pygame.Surface):
-        self.game_surface.fill(
-            (0, 0, 0)
-        )
+        self.game_surface.fill((0, 0, 0))
         for tetromino in self.stage_pieces:
             tetromino.render(self.game_surface)
-        self.game_surface.fill(
-            (0, 0, 0),
-            pygame.Rect(0, 0, self.stage_width(), STAGE_BLOCK_HEIGHT / 2 * self.block_size)
-        )
+        self.game_surface.fill((0, 0, 0),
+        pygame.Rect(0, 0, self.stage_width(), STAGE_BLOCK_HEIGHT / 2 * self.block_size))
         self.stage_drop.render(self.game_surface)
-        # add area for score, level, next tetromino
         pygame.draw.line(self.game_surface, (255, 255, 255), (300, 0), (300, self.stage.height))
         local_screen.blit(self.game_surface, self.stage)
 
     def new_tetromino(self):
         self.stage_drop = Tetromino(self.block_size)
 
-    # pausing the game using "esc" key
-    def handle_escape(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_ESCAPE] and not self.paused:
-            import settings
-            self.paused = True
-            settings.run()
-            self.paused = False
 
     def step(self):
-        self.handle_escape()
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            self.stage_drop.rotate()
         if self.paused:
             return
 
