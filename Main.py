@@ -17,35 +17,10 @@ clock = pygame.time.Clock()
 fps = 60
 
 def run_game():
-    # Initialize game state with dimensions and block size
+    # Initialize the game state
     game_state = GameState.GameState((screen_width, screen_height), 30)
-    running = True
-    while running:
-        dt = clock.tick(fps)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            # Pause menu on ESC
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                result = pause_menu()
-                if result == "exit":
-                    return
-            # Forward input to game state
-            if hasattr(game_state, 'handle_event'):
-                game_state.handle_event(event)
-
-        # Step the game logic
-        if hasattr(game_state, 'step'):
-            game_state.step(dt)
-        # Render to the screen
-        if hasattr(game_state, 'render'):
-            game_state.render(screen)
-        pygame.display.flip()
-
-        # Exit when game over
-        if getattr(game_state, 'game_over', False):
-            running = False
+    # Hand over control to GameState.run()
+    game_state.run()
 
 def pause_menu():
     paused = True
