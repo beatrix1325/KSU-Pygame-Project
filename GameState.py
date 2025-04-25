@@ -128,7 +128,6 @@ class Tetromino:
         return new_tetromino
 
     def render(self, local_screen: pygame.Surface):
-        local_screen.blit(self.texture, self.position)
         for i in range(len(self.texture)):
             local_screen.blit(self.texture[i], self.collision_box[i])
 
